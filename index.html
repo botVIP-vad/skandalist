@@ -218,7 +218,12 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
 .bot-status.on{color:#4ade80}
 .bot-status.err{color:#f87171}
 .cb-label{display:flex;flex-direction:column;gap:4px;color:var(--accent);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.cb-hint{font-size:11px;color:var(--muted);line-height:1.5}
+.cb-msg-row{display:flex;gap:6px;align-items:center}
+.cb-msg-row input.search{flex:1;min-width:0}
+.cb-msg-row input.cb-msg-count{flex:0 0 62px;width:62px;text-align:center}
+.cb-msg-row input.cb-msg-name{flex:0 0 110px;width:110px}
+.cb-msg-del{flex:0 0 36px;padding:8px 0;border-radius:8px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#f87171;font-weight:700;transition:.2s}
+.cb-msg-del:hover{background:#ef4444;color:#fff}
 .win-header-block{display:flex;justify-content:space-between;align-items:center;gap:14px;transition:.5s}
 .win-header-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 #win-status-label{color:var(--accent);font-weight:800;letter-spacing:3px;font-size:16px;display:block;margin-bottom:3px;text-transform:uppercase}
@@ -303,8 +308,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
     </div>
     <button class="reset" onclick="openWheelStats()" style="margin-top:8px">📊 СТАТИСТИКА</button>
     <div class="bot-chat" style="margin-top:8px">
-      <button class="btn-chat" onclick="sendChatMsg(1)" title="Отправить сообщение 1 в чат">📢 Сообщ. 1</button>
-      <button class="btn-chat" onclick="sendChatMsg(2)" title="Отправить сообщение 2 в чат">📢 Сообщ. 2</button>
+      <div id="bot-chat-btns" style="display:flex;gap:6px;flex:1"></div>
       <button class="btn-chat gear" onclick="openChatBotSettings()" title="Настройки бота">⚙</button>
     </div>
     <div class="bot-status" id="bot-status">🤖 бот: выкл</div>
@@ -554,10 +558,9 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
     <h3>🤖 БОТ ДЛЯ ЧАТА</h3>
     <label class="cb-label">Логин бота<input class="search" id="cb-nick" placeholder="логин аккаунта бота" autocomplete="off"></label>
     <label class="cb-label">OAuth-токен<input class="search" id="cb-token" type="password" placeholder="oauth:xxxxxxxx" autocomplete="off"></label>
-    <div class="cb-hint">Скопируйте сюда <b>Access token</b> (напр., с https://twitchapps.com/tmi/ — залогиньтесь аккаунтом <b>бота</b>). Префикс «oauth:» добавится автоматически. Токен хранится только в этом браузере (localStorage) и уходит только на официальный сервер Twitch.</div>
-    <label class="cb-label">Сообщение 1<input class="search" id="cb-msg1" placeholder="текст сообщения 1"></label>
-    <label class="cb-label">Сообщение 2<input class="search" id="cb-msg2" placeholder="текст сообщения 2"></label>
-    <div class="cb-hint">Подстановки: <b>%winner%</b> — последний победитель, <b>%code%</b> — слово для участия</div>
+    <div class="cb-label">Сообщения</div>
+    <div id="cb-msgs" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="btn-chat" style="flex:none" onclick="addChatBotMsg()">➕ Добавить сообщение</button>
     <button class="pbtn" onclick="saveChatBotCfg()">💾 СОХРАНИТЬ И ПОДКЛЮЧИТЬ</button>
   </div>
 </div>
@@ -1423,22 +1426,75 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModals
 
 // ===== CHAT BOT (отправка сообщений в чат Twitch) =====
 var botSock=null,botReconTimer=null;
-var chatBotCfg={nick:'',token:'',msg1:'🎮 Розыгрыш стартует! Пишите + в чат, чтобы участвовать!',msg2:'📢 Победитель, ответьте боту в личные сообщения!'};
-try{var _cb=JSON.parse(localStorage.getItem('chatBotCfg')||'null');if(_cb&&typeof _cb==='object'){for(var _k in chatBotCfg){if(_k in _cb)chatBotCfg[_k]=_cb[_k];}}}catch(e){}
+var chatBotCfg={nick:'',token:'',msgs:[{btn:'📢 1',text:'🎮 Розыгрыш стартует! Пишите + в чат, чтобы участвовать!',count:1},{btn:'📢 2',text:'📢 Победитель, ответьте боту в личные сообщения!',count:1}]};
+try{
+  var _cb=JSON.parse(localStorage.getItem('chatBotCfg')||'null');
+  if(_cb&&typeof _cb==='object'){
+    if(typeof _cb.nick==='string')chatBotCfg.nick=_cb.nick;
+    if(typeof _cb.token==='string')chatBotCfg.token=_cb.token;
+    if(Array.isArray(_cb.msgs)){
+      chatBotCfg.msgs=_cb.msgs.filter(function(m){return m&&typeof m==='object';}).map(function(m){return{btn:String(m.btn||''),text:String(m.text||''),count:Math.max(1,Math.min(20,parseInt(m.count)||1))};});
+    }else{
+      chatBotCfg.msgs=[];
+      if(_cb.msg1)chatBotCfg.msgs.push({btn:'📢 1',text:String(_cb.msg1),count:1});
+      if(_cb.msg2)chatBotCfg.msgs.push({btn:'📢 2',text:String(_cb.msg2),count:1});
+    }
+    if(!chatBotCfg.msgs.length)chatBotCfg.msgs.push({btn:'📢 1',text:'',count:1});
+  }
+}catch(e){}
 function setBotStatus(txt,cls){var el=document.getElementById('bot-status');if(!el)return;el.innerText='🤖 бот: '+txt;el.className='bot-status'+(cls?' '+cls:'');}
 function openChatBotSettings(){
   document.getElementById('cb-nick').value=chatBotCfg.nick;
   document.getElementById('cb-token').value=chatBotCfg.token;
-  document.getElementById('cb-msg1').value=chatBotCfg.msg1;
-  document.getElementById('cb-msg2').value=chatBotCfg.msg2;
+  renderMsgInputs();
   document.getElementById('chatBotModal').classList.add('open');
 }
+function renderMsgInputs(){
+  var box=document.getElementById('cb-msgs');if(!box)return;
+  box.innerHTML='';
+  chatBotCfg.msgs.forEach(function(m,i){
+    var row=document.createElement('div');row.className='cb-msg-row';
+    var inp=document.createElement('input');inp.className='search';inp.placeholder='сообщение '+(i+1);inp.value=m.text;inp.setAttribute('data-i',i);inp.setAttribute('data-f','text');
+    var nm=document.createElement('input');nm.className='search cb-msg-name';nm.placeholder='имя кнопки';nm.value=m.btn||'';nm.title='Название кнопки на панели';nm.setAttribute('data-i',i);nm.setAttribute('data-f','btn');
+    var cnt=document.createElement('input');cnt.className='search cb-msg-count';cnt.type='number';cnt.min='1';cnt.max='20';cnt.placeholder='раз';cnt.value=m.count;cnt.title='Сколько раз отправить';cnt.setAttribute('data-i',i);cnt.setAttribute('data-f','count');
+    var del=document.createElement('button');del.className='cb-msg-del';del.textContent='🗑';del.title='Убрать сообщение';
+    del.onclick=function(){collectMsgInputs();chatBotCfg.msgs.splice(i,1);if(!chatBotCfg.msgs.length)chatBotCfg.msgs.push({btn:'📢 1',text:'',count:1});renderMsgInputs();};
+    inp.oninput=function(){collectMsgInputs();};
+    nm.oninput=function(){collectMsgInputs();};
+    cnt.oninput=function(){collectMsgInputs();};
+    row.appendChild(inp);row.appendChild(nm);row.appendChild(cnt);row.appendChild(del);
+    box.appendChild(row);
+  });
+}
+function collectMsgInputs(){
+  var box=document.getElementById('cb-msgs');if(!box)return;
+  box.querySelectorAll('input[data-i]').forEach(function(el){
+    var i=parseInt(el.getAttribute('data-i')),f=el.getAttribute('data-f');
+    if(!chatBotCfg.msgs[i])return;
+    if(f==='text')chatBotCfg.msgs[i].text=el.value;
+    else if(f==='btn')chatBotCfg.msgs[i].btn=el.value;
+    else chatBotCfg.msgs[i].count=Math.max(1,Math.min(20,parseInt(el.value)||1));
+  });
+}
+function addChatBotMsg(){collectMsgInputs();chatBotCfg.msgs.push({btn:'📢 '+(chatBotCfg.msgs.length+1),text:'',count:1});renderMsgInputs();}
+function renderBotChatButtons(){
+  var box=document.getElementById('bot-chat-btns');if(!box)return;
+  box.innerHTML='';
+  chatBotCfg.msgs.forEach(function(m,i){
+    var b=document.createElement('button');b.className='btn-chat';b.textContent=(m.btn&&m.btn.trim())?m.btn.trim():('📢 '+(i+1));
+    b.title=m.text||('Сообщение '+(i+1));
+    b.onclick=function(){sendChatMsg(i);};
+    box.appendChild(b);
+  });
+}
 function saveChatBotCfg(){
+  collectMsgInputs();
   chatBotCfg.nick=document.getElementById('cb-nick').value.trim();
   chatBotCfg.token=document.getElementById('cb-token').value.replace(/\s+/g,'');
-  chatBotCfg.msg1=document.getElementById('cb-msg1').value.trim();
-  chatBotCfg.msg2=document.getElementById('cb-msg2').value.trim();
+  chatBotCfg.msgs=chatBotCfg.msgs.filter(function(m){return m.text.trim();}).map(function(m){return{btn:String(m.btn||'').trim(),text:m.text.trim(),count:Math.max(1,Math.min(20,m.count||1))};});
+  if(!chatBotCfg.msgs.length)chatBotCfg.msgs.push({btn:'📢 1',text:'',count:1});
   localStorage.setItem('chatBotCfg',JSON.stringify(chatBotCfg));
+  renderBotChatButtons();
   closeModals();
   connectBot();
 }
@@ -1470,12 +1526,15 @@ function connectBot(){
   };
   botSock.onclose=function(){setBotStatus('нет связи, переподключение...','err');clearTimeout(botReconTimer);botReconTimer=setTimeout(connectBot,5000);};
 }
-function sendChatMsg(num){
-  var text=(num===2?chatBotCfg.msg2:chatBotCfg.msg1)||'';
-  if(!text.trim()){alert('Сообщение '+num+' не задано — откройте настройки бота (⚙).');openChatBotSettings();return;}
+function sendChatMsg(idx){
+  var m=chatBotCfg.msgs[idx];
+  if(!m||!m.text.trim()){alert('Сообщение '+(idx+1)+' не задано — откройте настройки бота (⚙).');openChatBotSettings();return;}
   if(!botSock||botSock.readyState!==1){alert('Бот не подключён! Настройте логин и токен (⚙).');openChatBotSettings();return;}
-  text=text.replace(/%winner%/g,currentWinner||'???').replace(/%code%/g,code||'+');
-  botSock.send('PRIVMSG #'+CH+' :'+text);
+  var count=Math.max(1,Math.min(20,m.count||1));
+  var text=m.text.replace(/%winner%/g,currentWinner||'???').replace(/%code%/g,code||'+');
+  for(var k=0;k<count;k++){
+    (function(k){setTimeout(function(){if(botSock&&botSock.readyState===1)botSock.send('PRIVMSG #'+CH+' :'+text);},k*1300);})(k);
+  }
 }
 
 function connect(){
@@ -1591,6 +1650,7 @@ f.src='https://www.twitch.tv/embed/'+CH+'/chat?parent='+encodeURIComponent(locat
 displayTimer();
 connect();
 connectBot();
+renderBotChatButtons();
 render();
 renderLeaderboard();
 updateCloudButton();
