@@ -1435,7 +1435,7 @@ function openChatBotSettings(){
 }
 function saveChatBotCfg(){
   chatBotCfg.nick=document.getElementById('cb-nick').value.trim();
-  chatBotCfg.token=document.getElementById('cb-token').value.trim();
+  chatBotCfg.token=document.getElementById('cb-token').value.replace(/\s+/g,'');
   chatBotCfg.msg1=document.getElementById('cb-msg1').value.trim();
   chatBotCfg.msg2=document.getElementById('cb-msg2').value.trim();
   localStorage.setItem('chatBotCfg',JSON.stringify(chatBotCfg));
@@ -1451,13 +1451,22 @@ function connectBot(){
   botSock.onopen=function(){
     botSock.send('PASS '+(chatBotCfg.token.indexOf('oauth:')===0?chatBotCfg.token:'oauth:'+chatBotCfg.token));
     botSock.send('NICK '+chatBotCfg.nick.toLowerCase());
-    botSock.send('JOIN #'+CH);
-    setBotStatus(chatBotCfg.nick+' — подключён','on');
   };
   botSock.onmessage=function(ev){
     var d=ev.data;
     if(d.indexOf('PING')===0){botSock.send('PONG :tmi.twitch.tv');return;}
-    if(d.indexOf('Login authentication failed')>=0||d.indexOf('Improperly formatted auth')>=0){setBotStatus('ошибка авторизации — проверьте логин/токен','err');}
+    if(d.indexOf(' 001 ')>=0){
+      botSock.send('JOIN #'+CH);
+      setBotStatus(chatBotCfg.nick+' — подключён','on');
+      return;
+    }
+    if(d.indexOf('Login authentication failed')>=0){setBotStatus('авторизация отклонена — токен неверен или истёк','err');return;}
+    if(d.indexOf('NOTICE')>=0){
+      var nm=d.split('NOTICE')[1]||d;
+      setBotStatus('сервер: '+nm.substring(0,100).trim(),'err');
+      return;
+    }
+    if(d.indexOf('ERROR')>=0){setBotStatus('ошибка: '+d.substring(0,100),'err');}
   };
   botSock.onclose=function(){setBotStatus('нет связи, переподключение...','err');clearTimeout(botReconTimer);botReconTimer=setTimeout(connectBot,5000);};
 }
