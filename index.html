@@ -95,23 +95,25 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
 .vid-opt{padding:10px 18px;border-radius:8px;background:rgba(32,22,51,.95);backdrop-filter:blur(8px);color:var(--accent);font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.2s;border:1px solid rgba(168,85,247,.15);white-space:nowrap;text-align:center;min-width:110px}
 .vid-opt:hover{background:rgba(168,85,247,.2);border-color:var(--accent)}
 .vid-opt.active{background:var(--accent);color:#1c1230;border-color:var(--accent)}
-.timer-wrapper{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(168,85,247,.15)}
-.timer-container{position:relative;width:140px;height:140px;display:flex;justify-content:center;align-items:center}
+.timer-wrapper{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:22px;padding-top:22px;border-top:3px solid rgba(168,85,247,.35)}
+.frame-wrap > .timer-wrapper.chat-timer{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);margin-top:0;padding-top:0;border-top:none;width:auto;z-index:12;display:flex;flex-direction:column;align-items:center;gap:14px}
+.timer-container{position:relative;width:220px;height:220px;display:flex;justify-content:center;align-items:center}
 .timer-container svg{position:absolute;width:100%;height:100%;transform:rotate(-90deg)}
-.timer-container circle{fill:none;stroke-width:8;stroke-linecap:round}
-.circle-bg{stroke:rgba(168,85,247,.08)}
-.circle-progress{stroke:url(#timerGradient);stroke-dasharray:352;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 6px rgba(168,85,247,.5))}
+.timer-container circle{fill:none;stroke-width:18;stroke-linecap:round}
+.chat-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:6;color:var(--accent);font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;text-align:center;text-shadow:0 0 20px rgba(168,85,247,.9);background:rgba(0,0,0,.6);padding:7px 20px;border-radius:10px;border:1px solid rgba(168,85,247,.3);backdrop-filter:blur(4px);pointer-events:none}
+.circle-bg{stroke:rgba(168,85,247,.25)}
+.circle-progress{stroke:url(#timerGradient);stroke-dasharray:503;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 16px rgba(168,85,247,.95))}
 .time-display{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.time-numbers{font-size:1.6rem;font-weight:900;letter-spacing:2px;color:var(--accent);text-shadow:0 0 20px rgba(168,85,247,.4)}
-.time-label{font-size:0.55rem;text-transform:uppercase;letter-spacing:3px;color:var(--muted);margin-top:4px}
-.time-label.finish{color:#f87171;text-shadow:0 0 10px rgba(239,68,68,.5)}
-.timer-controls{display:flex;flex-direction:column;gap:8px;align-items:center}
-.timer-row{display:flex;gap:8px}
-.timer-btn{padding:8px 14px;border-radius:10px;background:transparent;color:var(--accent);font-weight:700;font-size:12px;cursor:pointer;transition:.25s;border:1px solid rgba(168,85,247,.3);min-width:40px;text-align:center;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
-.timer-btn:hover{background:rgba(168,85,247,.15);border-color:var(--accent);box-shadow:0 5px 20px rgba(168,85,247,.3);transform:translateY(-2px)}
+.time-numbers{font-size:3.4rem;font-weight:900;letter-spacing:5px;color:#fff;text-shadow:0 0 40px rgba(168,85,247,1),0 0 80px rgba(168,85,247,.7)}
+.time-label{font-size:1.1rem;text-transform:uppercase;letter-spacing:5px;color:var(--accent);margin-top:10px;text-shadow:0 0 25px rgba(168,85,247,.9)}
+.time-label.finish{color:#ff6b6b;text-shadow:0 0 30px rgba(239,68,68,1),0 0 60px rgba(239,68,68,.7)}
+.timer-controls{display:flex;flex-direction:column;gap:14px;align-items:center}
+.timer-row{display:flex;gap:14px}
+.timer-btn{padding:12px 22px;border-radius:14px;background:transparent;color:var(--accent);font-weight:800;font-size:15px;cursor:pointer;transition:.25s;border:2px solid rgba(168,85,247,.45);min-width:64px;text-align:center;text-transform:uppercase;letter-spacing:.8px;box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 12px rgba(168,85,247,.35)}
+.timer-btn:hover{background:rgba(168,85,247,.25);border-color:var(--accent);box-shadow:0 10px 28px rgba(168,85,247,.6),0 0 20px rgba(168,85,247,.5);transform:translateY(-3px)}
 .timer-btn:active{transform:translateY(0)}
 .timer-btn.active{background:rgba(168,85,247,.2);color:var(--accent);border-color:var(--accent);box-shadow:0 0 15px rgba(168,85,247,.4)}
-.timer-btn.start-btn{padding:10px 22px;font-size:11px;letter-spacing:1px}
+.timer-btn.start-btn{padding:14px 30px;font-size:14px;letter-spacing:1.5px}
 .winner-btn{width:100%;padding:10px;border-radius:10px;background:transparent;color:var(--accent);font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:.25s;border:1px solid rgba(168,85,247,.3);margin-top:4px}
 .winner-btn:hover{background:rgba(168,85,247,.15);border-color:var(--accent);box-shadow:0 4px 15px rgba(168,85,247,.3)}
 .winner-options{display:flex;flex-direction:column;gap:6px;margin-top:6px;max-height:0;overflow:hidden;transition:max-height .3s ease,opacity .3s ease;opacity:0}
@@ -292,31 +294,32 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
       <button class="winner-opt" onclick="openLotto()">🎰 ЛОТТО</button>
     </div>
     <button class="reset" onclick="openWheelStats()" style="margin-top:8px">📊 СТАТИСТИКА</button>
-    <div class="timer-wrapper">
-      <div class="timer-container">
-        <svg><defs><linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#9333ea"/></linearGradient></defs>
-        <circle class="circle-bg" cx="70" cy="70" r="56"></circle>
-        <circle class="circle-progress" cx="70" cy="70" r="56" id="circleProgress"></circle></svg>
-        <div class="time-display">
-          <span class="time-numbers" id="timeDisplay">00:00</span>
-          <span class="time-label" id="timeLabel">Осталось</span>
-        </div>
-      </div>
-      <div class="timer-controls">
-        <div class="timer-row">
-          <button class="timer-btn" onclick="adjustTime(60)">+1</button>
-          <button class="timer-btn" onclick="adjustTime(-60)">-1</button>
-        </div>
-        <div class="timer-row">
-          <button class="timer-btn start-btn" id="btnStart" onclick="startTimer()">Старт</button>
-          <button class="timer-btn start-btn" id="btnPause" onclick="pauseTimer()">Пауза</button>
-        </div>
-      </div>
-    </div>
   </div>
   <div class="frame-wrap">
   <iframe id="twitch-chat-frame" title="Twitch chat for skandalist39" loading="lazy" allow="clipboard-write"></iframe>
+  <div class="chat-hint">ДЛЯ УЧАСТИЯ В ПРОКАЧКЕ <span style="color:#fff">(код слово)</span> В ЧАТ</div>
   <div class="chat-overlay" id="chatOverlay"></div>
+  <div class="timer-wrapper chat-timer">
+    <div class="timer-container">
+      <svg><defs><linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#9333ea"/></linearGradient></defs>
+      <circle class="circle-bg" cx="100" cy="100" r="80"></circle>
+      <circle class="circle-progress" cx="100" cy="100" r="80" id="circleProgress"></circle></svg>
+      <div class="time-display">
+        <span class="time-numbers" id="timeDisplay">00:00</span>
+        <span class="time-label" id="timeLabel">Осталось</span>
+      </div>
+    </div>
+    <div class="timer-controls">
+      <div class="timer-row">
+        <button class="timer-btn" onclick="adjustTime(60)">+1</button>
+        <button class="timer-btn" onclick="adjustTime(-60)">-1</button>
+      </div>
+      <div class="timer-row">
+        <button class="timer-btn start-btn" id="btnStart" onclick="startTimer()">Старт</button>
+        <button class="timer-btn start-btn" id="btnPause" onclick="pauseTimer()">Пауза</button>
+      </div>
+    </div>
+  </div>
 </div>
   <div class="leaderboard">
     <h3>🏆 ТОП ВЫВОДОВ</h3>
@@ -565,7 +568,7 @@ var vids=['biba1.mp4','biba2.mp4','biba3.mp4'];
 var vidx=0;
 var vidMenuOpen=false;
 var timerSeconds=0,timerInterval=null,timerRunning=false;
-var MAX_DASH=2*Math.PI*56;
+var MAX_DASH=2*Math.PI*80;
 var passwordModal=document.getElementById('passwordModal');
 var passwordInput=document.getElementById('passwordInput');
 var passwordError=document.getElementById('passwordError');
