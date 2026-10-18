@@ -210,6 +210,15 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
 .winner-modal-content{flex-direction:column;width:1400px;max-width:98vw;height:880px;max-height:98vh;background:var(--bg);padding:30px;border:none;border-radius:28px;box-shadow:0 0 120px rgba(255,248,225,.5)}
 .close-x{position:absolute;right:14px;top:6px;font-size:32px;color:var(--accent);cursor:pointer;transition:.3s;z-index:10}
 .close-x:hover{transform:scale(1.2);text-shadow:0 0 15px var(--accent)}
+.bot-chat{display:flex;gap:6px}
+.btn-chat{flex:1;padding:9px 6px;border-radius:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;border:1px solid rgba(255,248,225,.3);background:rgba(255,248,225,.08);color:var(--accent);transition:.2s}
+.btn-chat:hover{background:var(--accent);color:#1c1230}
+.btn-chat.gear{flex:0 0 38px;font-size:15px}
+.bot-status{font-size:10px;color:var(--muted);text-align:center}
+.bot-status.on{color:#4ade80}
+.bot-status.err{color:#f87171}
+.cb-label{display:flex;flex-direction:column;gap:4px;color:var(--accent);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.cb-hint{font-size:11px;color:var(--muted);line-height:1.5}
 .win-header-block{display:flex;justify-content:space-between;align-items:center;gap:14px;transition:.5s}
 .win-header-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 #win-status-label{color:var(--accent);font-weight:800;letter-spacing:3px;font-size:16px;display:block;margin-bottom:3px;text-transform:uppercase}
@@ -293,6 +302,12 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
       <button class="winner-opt" onclick="openLotto()">🎰 ЛОТТО</button>
     </div>
     <button class="reset" onclick="openWheelStats()" style="margin-top:8px">📊 СТАТИСТИКА</button>
+    <div class="bot-chat" style="margin-top:8px">
+      <button class="btn-chat" onclick="sendChatMsg(1)" title="Отправить сообщение 1 в чат">📢 Сообщ. 1</button>
+      <button class="btn-chat" onclick="sendChatMsg(2)" title="Отправить сообщение 2 в чат">📢 Сообщ. 2</button>
+      <button class="btn-chat gear" onclick="openChatBotSettings()" title="Настройки бота">⚙</button>
+    </div>
+    <div class="bot-status" id="bot-status">🤖 бот: выкл</div>
     <div class="timer-wrapper">
       <div class="timer-container">
         <svg><defs><linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFF8E1"/><stop offset="100%" stop-color="#FFEFD5"/></linearGradient></defs>
@@ -529,6 +544,21 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
       </div>
     </div>
     <button class="close" onclick="closeCloudModal()">Закрыть</button>
+  </div>
+</div>
+
+<!-- CHAT BOT SETTINGS -->
+<div class="modal" id="chatBotModal">
+  <div class="close-x" onclick="closeModals()">&times;</div>
+  <div class="tablebox" style="width:540px;max-width:94vw">
+    <h3>🤖 БОТ ДЛЯ ЧАТА</h3>
+    <label class="cb-label">Логин бота<input class="search" id="cb-nick" placeholder="логин аккаунта бота" autocomplete="off"></label>
+    <label class="cb-label">OAuth-токен<input class="search" id="cb-token" type="password" placeholder="oauth:xxxxxxxx" autocomplete="off"></label>
+    <div class="cb-hint">Токен с правом <b>chat:edit</b> — например, с <b>https://twitchapps.com/tmi/</b> (залогиньтесь аккаунтом БОТА, а не канала). Вставляйте целиком, включая «oauth:». Токен хранится только в этом браузере (localStorage) и уходит только на официальный сервер Twitch.</div>
+    <label class="cb-label">Сообщение 1<input class="search" id="cb-msg1" placeholder="текст сообщения 1"></label>
+    <label class="cb-label">Сообщение 2<input class="search" id="cb-msg2" placeholder="текст сообщения 2"></label>
+    <div class="cb-hint">Подстановки: <b>%winner%</b> — последний победитель, <b>%code%</b> — слово для участия</div>
+    <button class="pbtn" onclick="saveChatBotCfg()">💾 СОХРАНИТЬ И ПОДКЛЮЧИТЬ</button>
   </div>
 </div>
 
@@ -1391,6 +1421,54 @@ function closeModals(){
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModals();closeWheel();}});
 
+// ===== CHAT BOT (отправка сообщений в чат Twitch) =====
+var botSock=null,botReconTimer=null;
+var chatBotCfg={nick:'',token:'',msg1:'🎮 Розыгрыш стартует! Пишите + в чат, чтобы участвовать!',msg2:'📢 Победитель, ответьте боту в личные сообщения!'};
+try{var _cb=JSON.parse(localStorage.getItem('chatBotCfg')||'null');if(_cb&&typeof _cb==='object'){for(var _k in chatBotCfg){if(_k in _cb)chatBotCfg[_k]=_cb[_k];}}}catch(e){}
+function setBotStatus(txt,cls){var el=document.getElementById('bot-status');if(!el)return;el.innerText='🤖 бот: '+txt;el.className='bot-status'+(cls?' '+cls:'');}
+function openChatBotSettings(){
+  document.getElementById('cb-nick').value=chatBotCfg.nick;
+  document.getElementById('cb-token').value=chatBotCfg.token;
+  document.getElementById('cb-msg1').value=chatBotCfg.msg1;
+  document.getElementById('cb-msg2').value=chatBotCfg.msg2;
+  document.getElementById('chatBotModal').classList.add('open');
+}
+function saveChatBotCfg(){
+  chatBotCfg.nick=document.getElementById('cb-nick').value.trim();
+  chatBotCfg.token=document.getElementById('cb-token').value.trim();
+  chatBotCfg.msg1=document.getElementById('cb-msg1').value.trim();
+  chatBotCfg.msg2=document.getElementById('cb-msg2').value.trim();
+  localStorage.setItem('chatBotCfg',JSON.stringify(chatBotCfg));
+  closeModals();
+  connectBot();
+}
+function connectBot(){
+  clearTimeout(botReconTimer);
+  if(botSock){var old=botSock;botSock=null;try{old.onclose=null;old.close();}catch(e){}}
+  if(!chatBotCfg.nick||!chatBotCfg.token){setBotStatus('выкл (настройте ⚙)');return;}
+  setBotStatus('подключение...');
+  botSock=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+  botSock.onopen=function(){
+    botSock.send('PASS '+chatBotCfg.token);
+    botSock.send('NICK '+chatBotCfg.nick.toLowerCase());
+    botSock.send('JOIN #'+CH);
+    setBotStatus(chatBotCfg.nick+' — подключён','on');
+  };
+  botSock.onmessage=function(ev){
+    var d=ev.data;
+    if(d.indexOf('PING')===0){botSock.send('PONG :tmi.twitch.tv');return;}
+    if(d.indexOf('Login authentication failed')>=0||d.indexOf('Improperly formatted auth')>=0){setBotStatus('ошибка авторизации — проверьте логин/токен','err');}
+  };
+  botSock.onclose=function(){setBotStatus('нет связи, переподключение...','err');clearTimeout(botReconTimer);botReconTimer=setTimeout(connectBot,5000);};
+}
+function sendChatMsg(num){
+  var text=(num===2?chatBotCfg.msg2:chatBotCfg.msg1)||'';
+  if(!text.trim()){alert('Сообщение '+num+' не задано — откройте настройки бота (⚙).');openChatBotSettings();return;}
+  if(!botSock||botSock.readyState!==1){alert('Бот не подключён! Настройте логин и токен (⚙).');openChatBotSettings();return;}
+  text=text.replace(/%winner%/g,currentWinner||'???').replace(/%code%/g,code||'+');
+  botSock.send('PRIVMSG #'+CH+' :'+text);
+}
+
 function connect(){
   if(sock)try{sock.close()}catch(e){}
   sock=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
@@ -1503,6 +1581,7 @@ f.src='https://www.twitch.tv/embed/'+CH+'/chat?parent='+encodeURIComponent(locat
 
 displayTimer();
 connect();
+connectBot();
 render();
 renderLeaderboard();
 updateCloudButton();
