@@ -554,7 +554,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
     <h3>🤖 БОТ ДЛЯ ЧАТА</h3>
     <label class="cb-label">Логин бота<input class="search" id="cb-nick" placeholder="логин аккаунта бота" autocomplete="off"></label>
     <label class="cb-label">OAuth-токен<input class="search" id="cb-token" type="password" placeholder="oauth:xxxxxxxx" autocomplete="off"></label>
-    <div class="cb-hint">Токен с правом <b>chat:edit</b> — например, с <b>https://twitchapps.com/tmi/</b> (залогиньтесь аккаунтом БОТА, а не канала). Вставляйте целиком, включая «oauth:». Токен хранится только в этом браузере (localStorage) и уходит только на официальный сервер Twitch.</div>
+    <div class="cb-hint">Скопируйте сюда <b>Access token</b> (напр., с https://twitchapps.com/tmi/ — залогиньтесь аккаунтом <b>бота</b>). Префикс «oauth:» добавится автоматически. Токен хранится только в этом браузере (localStorage) и уходит только на официальный сервер Twitch.</div>
     <label class="cb-label">Сообщение 1<input class="search" id="cb-msg1" placeholder="текст сообщения 1"></label>
     <label class="cb-label">Сообщение 2<input class="search" id="cb-msg2" placeholder="текст сообщения 2"></label>
     <div class="cb-hint">Подстановки: <b>%winner%</b> — последний победитель, <b>%code%</b> — слово для участия</div>
@@ -1449,7 +1449,7 @@ function connectBot(){
   setBotStatus('подключение...');
   botSock=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
   botSock.onopen=function(){
-    botSock.send('PASS '+chatBotCfg.token);
+    botSock.send('PASS '+(chatBotCfg.token.indexOf('oauth:')===0?chatBotCfg.token:'oauth:'+chatBotCfg.token));
     botSock.send('NICK '+chatBotCfg.nick.toLowerCase());
     botSock.send('JOIN #'+CH);
     setBotStatus(chatBotCfg.nick+' — подключён','on');
