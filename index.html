@@ -130,9 +130,6 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
 .nr-arrow{position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:36px solid #fff;filter:drop-shadow(0 0 10px rgba(255,248,225,.8));z-index:5}
 .nr-window{position:relative;overflow:hidden;width:800px;max-width:100%;height:160px;margin:0 auto;background:#0d0716;border:3px solid var(--accent);border-radius:16px;box-shadow:inset 0 0 30px rgba(0,0,0,.6);transition:opacity .18s ease}
 .nr-strip{position:relative;display:flex;height:100%;will-change:transform}
-.nr-window.spinning{animation:nrShake .1s linear infinite}
-.nr-window.spinning .nr-strip{filter:blur(6px)}
-@keyframes nrShake{0%,100%{transform:translateY(0)}25%{transform:translateY(-1px)}75%{transform:translateY(1px)}}
 .nr-cell{flex:0 0 160px;height:100%;box-sizing:border-box;margin-right:16px;border-radius:14px;display:flex;align-items:center;justify-content:center;padding:12px;background:linear-gradient(145deg,#2a1a45,#170d2b);border:1px solid rgba(255,248,225,.3);color:#fff;font-weight:800;font-size:18px;word-break:break-word;text-align:center}
 .nr-cell.is-winner{background:linear-gradient(145deg,var(--accent),#FCD34D);border-color:#fff;transform:scale(1.07);box-shadow:0 0 24px var(--accent)}
 #new-roulette-result{min-height:44px;font-size:26px;font-weight:900;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(255,248,225,.8)}
@@ -339,8 +336,8 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
     <h3>Настройки</h3>
     <div id="elim-log"></div>
     <div class="btn-row">
-      <button class="btn" id="modeElim" onclick="setSpinMode('elimination')">НА ВЫБЫВАНИЕ</button>
-      <button class="btn active" id="modeNormal" onclick="setSpinMode('normal')">ОБЫЧНЫЙ</button>
+      <button class="btn active" id="modeElim" onclick="setSpinMode('elimination')">НА ВЫБЫВАНИЕ</button>
+      <button class="btn" id="modeNormal" onclick="setSpinMode('normal')">ОБЫЧНЫЙ</button>
     </div>
     <div class="dur-row">
       <button class="btn" onclick="adjustDur(-1)">-</button>
@@ -594,7 +591,7 @@ var winnerMenuOpen=false;
 var wheelParticipants=[];
 var isWheelSpinning=false;
 var currentRotation=0;
-var selectedSpinMode='normal';
+var selectedSpinMode='elimination';
 var autoSpinEnabled=false;
 var duelMode=false;
 var duelPlayers=[];
@@ -700,7 +697,7 @@ function pauseTimer(){timerRunning=false;clearInterval(timerInterval);document.g
 function toggleWinnerMenu(){winnerMenuOpen=!winnerMenuOpen;document.getElementById('winnerOptions').classList.toggle('show',winnerMenuOpen);}
 
 // ===== WHEEL FUNCTIONS =====
-function openWheel(){wheelParticipants=Array.from(parts);if(wheelParticipants.length===0){alert('Нет участников!');return;}document.getElementById('wheelModal').classList.add('show');document.getElementById('elim-log').innerText='';currentRotation=0;setSpinMode('normal');drawWheel(0);}
+function openWheel(){wheelParticipants=Array.from(parts);if(wheelParticipants.length===0){alert('Нет участников!');return;}document.getElementById('wheelModal').classList.add('show');document.getElementById('elim-log').innerText='';currentRotation=0;setSpinMode('elimination');drawWheel(0);}
 function closeWheel(){document.getElementById('wheelModal').classList.remove('show');isWheelSpinning=false;autoSpinEnabled=false;duelMode=false;var a=document.getElementById('autoskip-checkbox');if(a)a.checked=false;var b=document.getElementById('spinBtn');if(b)b.disabled=false;}
 function setSpinMode(mode){selectedSpinMode=mode;duelMode=false;document.getElementById('modeElim').classList.toggle('active',mode==='elimination');document.getElementById('modeNormal').classList.toggle('active',mode==='normal');document.getElementById('elim-log').innerText='';drawWheel(0);}
 function adjustDur(d){var inp=document.getElementById('durInput');inp.value=Math.max(1,Math.min(30,(parseInt(inp.value)||5)+d));}
@@ -869,7 +866,6 @@ function openNewRoulette(){
   document.getElementById('new-roulette-pool-count').innerText='Участников: '+n;
   document.getElementById('new-roulette-result').innerText='---';
   document.getElementById('new-roulette-confirm-btn').style.display='none';
-  document.getElementById('new-roulette-window').classList.remove('spinning');
   document.getElementById('newRouletteModal').classList.add('open');
 }
 function parseImportedParticipants(raw){
@@ -902,17 +898,11 @@ function spinNewRoulette(){
   wrap.querySelectorAll('.nr-cell').forEach(function(c){c.classList.remove('is-winner');});
   wrap.style.transform='translateX('+Xstart+'px)';
   document.getElementById('new-roulette-result').innerText='🎰 КРУТИМ...';
-  var lastTick=-1,lastScramble=0;
-  if(winEl)winEl.classList.add('spinning');
+  var lastTick=-1;
   requestAnimationFrame(function(){if(winEl)winEl.style.opacity='1';});
-  function scrambleCells(){
-    var cells=wrap.querySelectorAll('.nr-cell');
-    for(var i=0;i<cells.length;i++)cells[i].textContent=newRoulettePool[Math.floor(Math.random()*n)];
-  }
   function frame(now){
     if(token!==newRouletteSpinToken||!newRouletteSpinning||!document.getElementById('newRouletteModal').classList.contains('open'))return;
     var p=Math.min((now-startTime)/duration,1);
-    if(now-lastScramble>90){lastScramble=now;scrambleCells();}
     // Длинное плавное затягивание в конце: резкий старт, очень медленный финиш
     var ease=1-Math.pow(1-p,6);
     var X=Xstart+(Xfinal-Xstart)*ease;
@@ -922,10 +912,8 @@ function spinNewRoulette(){
     if(p<1){requestAnimationFrame(frame);}
     else{
       newRouletteSpinning=false;
-      if(winEl)winEl.classList.remove('spinning');
       wrap.style.transform='translateX('+Xfinal+'px)';
       var cells=wrap.querySelectorAll('.nr-cell');
-      for(var i=0;i<cells.length;i++)cells[i].textContent=newRouletteOrder[i]||'';
       if(cells[L])cells[L].classList.add('is-winner');
       document.getElementById('new-roulette-result').innerText='🏆 Победитель: '+winner;
       confirmBtn.style.display='block';
