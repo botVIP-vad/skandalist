@@ -311,6 +311,8 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
       </div>
       <div class="winner-sep">ДРУГОЕ</div>
       <button class="winner-opt" onclick="openLotto()">🎰 ЛОТТО</button>
+      <div class="winner-sep">НОВИЧКИ</div>
+      <button class="winner-opt" onclick="instantRollNeverWon()">🏆 НИ РАЗУ НЕ ВЫИГРЫВАЛИ</button>
     </div>
     <button class="reset" onclick="openWheelStats()" style="margin-top:8px">📊 СТАТИСТИКА</button>
     <div class="bot-chat" style="margin-top:8px">
@@ -885,6 +887,18 @@ function instantRoll(count){
   }
   showWinner(arr[Math.floor(Math.random()*arr.length)]);
 }
+function getNeverWonParticipants(){
+  return Array.from(parts).filter(function(p){
+    var h=winnerHistory[p.toLowerCase()]||[];
+    return !h.some(function(x){return !x.isReroll;});
+  });
+}
+function instantRollNeverWon(){
+  hideWinnerMenu();
+  var arr=getNeverWonParticipants();
+  if(arr.length===0){alert('Все участники уже выигрывали или список пуст!');return;}
+  showWinner(arr[Math.floor(Math.random()*arr.length)]);
+}
 
 // ===== NEW HORIZONTAL ROULETTE =====
 var newRoulettePool=[];
@@ -1165,7 +1179,7 @@ var winTimerActive=false;
 var winnerHistory=JSON.parse(localStorage.getItem('skandalist39_winner_history')||'{}');
 var participantProfiles=JSON.parse(localStorage.getItem('skandalist39_profiles')||'{}');
 var userMessages={};
-var rerollCount=0;
+var sessionRecorded=false;
 
 function getProfileKey(name){return String(name||'').trim().toLowerCase();}
 function getSavedTelegram(name){var k=getProfileKey(name);return k&&participantProfiles[k]?participantProfiles[k].tg||'':'';}
@@ -1322,6 +1336,7 @@ function showWinner(name){
       document.getElementById('win-timer-label').innerText=hr.toString().padStart(2,'0')+':'+min.toString().padStart(2,'0')+':'+sec.toString().padStart(2,'0');
     }
   },1000);
+  sessionRecorded=false;
   currentSession={winner:name.toUpperCase(),date:new Date().toLocaleDateString('ru-RU'),startTime:Date.now(),messages:[]};
 }
 
@@ -1357,6 +1372,7 @@ function saveWinnerStats(){
     currentSession.messages=winnerMessages;
     statistics.unshift(currentSession);
     localStorage.setItem('skandalist39_stats',JSON.stringify(statistics));
+    sessionRecorded=true;
   }
   closeWinnerScreen();
 }
@@ -1389,6 +1405,16 @@ function editWinnerCounter(type){
 }
 
 function closeWinnerScreen(){
+  if(currentSession && !sessionRecorded){
+    var elapsed=Date.now()-currentSession.startTime;
+    var mins=Math.floor(elapsed/60000);
+    var secs=Math.floor((elapsed%60000)/1000);
+    currentSession.time=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
+    currentSession.messages=winnerMessages;
+    statistics.unshift(currentSession);
+    try{localStorage.setItem('skandalist39_stats',JSON.stringify(statistics));}catch(e){}
+    sessionRecorded=true;
+  }
   document.getElementById('winner-screen').classList.remove('open');
   winTimerActive=false;
   clearInterval(window.winInt);
