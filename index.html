@@ -1181,6 +1181,7 @@ var winTimerActive=false;
 var winnerHistory=JSON.parse(localStorage.getItem('skandalist39_winner_history')||'{}');
 var participantProfiles=JSON.parse(localStorage.getItem('skandalist39_profiles')||'{}');
 var userMessages={};
+var rerollCount=0;
 var sessionRecorded=false;
 
 function getProfileKey(name){return String(name||'').trim().toLowerCase();}
