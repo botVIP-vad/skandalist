@@ -103,7 +103,10 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
 .timer-container{position:relative;width:200px;height:200px;display:flex;justify-content:center;align-items:center}
 .timer-container svg{position:absolute;width:100%;height:100%;transform:rotate(-90deg)}
 .timer-container circle{fill:none;stroke-width:10;stroke-linecap:round}
-.chat-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:6;color:var(--accent);font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;text-align:center;text-shadow:0 0 20px rgba(255,248,225,.9);background:rgba(0,0,0,.6);padding:7px 20px;border-radius:10px;border:1px solid rgba(255,248,225,.3);backdrop-filter:blur(4px);pointer-events:none;white-space:nowrap}
+.chat-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:6;color:var(--accent);font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;text-align:center;text-shadow:0 0 20px rgba(255,248,225,.9);background:linear-gradient(135deg,rgba(0,0,0,.7),rgba(36,28,18,.7));padding:9px 24px;border-radius:12px;border:1px solid rgba(255,248,225,.4);backdrop-filter:blur(6px);pointer-events:none;white-space:nowrap;animation:chatHintPulse 2.4s ease-in-out infinite;box-shadow:0 0 24px rgba(255,248,225,.35),inset 0 0 12px rgba(255,248,225,.08)}
+.chat-hint .plus{display:inline-block;color:#fff;font-size:19px;font-weight:900;margin:0 4px;animation:plusBounce 1.6s ease-in-out infinite;text-shadow:0 0 16px rgba(255,255,255,.9)}
+@keyframes chatHintPulse{0%,100%{transform:translateX(-50%) scale(1);box-shadow:0 0 24px rgba(255,248,225,.35),inset 0 0 12px rgba(255,248,225,.08)}50%{transform:translateX(-50%) scale(1.06);box-shadow:0 0 40px rgba(255,248,225,.7),inset 0 0 18px rgba(255,248,225,.15)}}
+@keyframes plusBounce{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.4) rotate(15deg)}50%{transform:scale(1) rotate(0deg)}75%{transform:scale(1.4) rotate(-15deg)}}
 .circle-bg{stroke:rgba(255,248,225,.25)}
 .circle-progress{stroke:url(#timerGradient);stroke-dasharray:503;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 16px rgba(255,248,225,.95))}
 .time-display{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -340,14 +343,10 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
     </div>
     <div class="chat-half">
       <iframe id="twitch-chat-frame" title="Twitch chat for skandalist39" loading="lazy" allow="clipboard-write"></iframe>
-      <div class="chat-hint">ДЛЯ УЧАСТИЯ В ПРОКАЧКЕ <span style="color:#fff">+</span> В ЧАТ</div>
+      <div class="chat-hint">ДЛЯ УЧАСТИЯ В ПРОКАЧКЕ <span class="plus">+</span> В ЧАТ</div>
       <div class="chat-overlay" id="chatOverlay"></div>
     </div>
 </div>
-<div class="leaderboard">
-    <h3>📜 ПОСЛЕДНИЕ ВЫПАДЕНИЯ</h3>
-    <div class="leaderboard-list" id="leaderboardList"></div>
-  </div>
 </div>
 <div class="wheel-modal" id="wheelModal">
   <div class="close-x" onclick="closeWheel()">&times;</div>
