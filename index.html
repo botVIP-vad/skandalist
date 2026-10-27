@@ -10,7 +10,7 @@
 html,body{margin:0;height:100%;padding:0;background:#0e0c06;color:var(--text);font-family:'Inter',sans-serif;font-weight:600}
 #bgvid{position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:0;opacity:.4;pointer-events:none}
 .app{position:relative;z-index:1;display:flex;height:100vh;gap:18px;padding:22px;align-items:flex-end;justify-content:center}
-.side{width:340px;min-height:170px;display:flex;flex-direction:column;gap:12px;background:rgba(36,28,18,.35);backdrop-filter:blur(10px);border:1px solid rgba(255,248,225,.2);border-radius:16px;padding:16px;box-shadow:0 10px 34px rgba(0,0,0,.35);overflow:visible;position:fixed;left:22px;bottom:22px;z-index:2}
+.side{width:calc((100vw - 850px)/2 - 40px);min-width:340px;min-height:300px;display:flex;flex-direction:column;gap:12px;background:rgba(36,28,18,.35);backdrop-filter:blur(10px);border:1px solid rgba(255,248,225,.2);border-radius:16px;padding:16px;box-shadow:0 10px 34px rgba(0,0,0,.35);overflow:visible;position:fixed;left:22px;bottom:22px;z-index:2}
 .side label{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
 .side label::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
 .side input{width:100%;padding:4px;border-radius:6px;background:rgba(0,0,0,.22);color:var(--text);font-size:11px;text-align:center;font-weight:700;outline:none;transition:.2s}
@@ -69,6 +69,9 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
 .chat-msg .nick{color:#fff;font-weight:700}
 .chat-msg.participant .nick{color:var(--accent);font-weight:800;text-shadow:0 0 8px rgba(255,248,225,.4)}
 .chat-msg .time{color:var(--muted);font-size:10px;margin-right:6px}
+.chat-msg .chat-status{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;margin-right:6px;padding:1px 5px;border-radius:4px;white-space:nowrap}
+.chat-msg .chat-status.part{color:#4ade80;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.35);text-shadow:0 0 6px rgba(74,222,128,.5)}
+.chat-msg .chat-status.nopart{color:#f87171;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);text-shadow:0 0 6px rgba(248,113,113,.4)}
 .chat-msg .text{color:#f1eaff}
 .chat-msg.highlight{background:rgba(255,248,225,.08);border-left:3px solid var(--accent);border-radius:6px}
 .modal{display:none;position:fixed;inset:0;background:rgba(14,12,6,.65);align-items:flex-start;justify-content:center;z-index:1000}
@@ -103,7 +106,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#100a1c;opacity:
 .timer-container{position:relative;width:200px;height:200px;display:flex;justify-content:center;align-items:center}
 .timer-container svg{position:absolute;width:100%;height:100%;transform:rotate(-90deg)}
 .timer-container circle{fill:none;stroke-width:10;stroke-linecap:round}
-.chat-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:6;color:var(--accent);font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;text-align:center;text-shadow:0 0 20px rgba(255,248,225,.9);background:linear-gradient(135deg,rgba(0,0,0,.7),rgba(36,28,18,.7));padding:9px 24px;border-radius:12px;border:1px solid rgba(255,248,225,.4);backdrop-filter:blur(6px);pointer-events:none;white-space:nowrap;animation:chatHintPulse 2.4s ease-in-out infinite;box-shadow:0 0 24px rgba(255,248,225,.35),inset 0 0 12px rgba(255,248,225,.08)}
+.chat-hint{position:absolute;top:4px;left:50%;transform:translateX(-50%);z-index:6;color:var(--accent);font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;text-align:center;text-shadow:0 0 20px rgba(255,248,225,.9);background:linear-gradient(135deg,rgba(0,0,0,.7),rgba(36,28,18,.7));padding:9px 24px;border-radius:12px;border:1px solid rgba(255,248,225,.4);backdrop-filter:blur(6px);pointer-events:none;white-space:nowrap;animation:chatHintPulse 2.4s ease-in-out infinite;box-shadow:0 0 24px rgba(255,248,225,.35),inset 0 0 12px rgba(255,248,225,.08)}
 .chat-hint .plus{display:inline-block;color:#fff;font-size:19px;font-weight:900;margin:0 4px;animation:plusBounce 1.6s ease-in-out infinite;text-shadow:0 0 16px rgba(255,255,255,.9)}
 @keyframes chatHintPulse{0%,100%{transform:translateX(-50%) scale(1);box-shadow:0 0 24px rgba(255,248,225,.35),inset 0 0 12px rgba(255,248,225,.08)}50%{transform:translateX(-50%) scale(1.06);box-shadow:0 0 40px rgba(255,248,225,.7),inset 0 0 18px rgba(255,248,225,.15)}}
 @keyframes plusBounce{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.4) rotate(15deg)}50%{transform:scale(1) rotate(0deg)}75%{transform:scale(1.4) rotate(-15deg)}}
@@ -654,7 +657,7 @@ function removePart(n){parts.delete(n);render();renderModal();}
 function renderModal(){var q=document.getElementById('search').value.trim().toLowerCase();var arr=Array.from(parts).filter(function(p){return !q||p.toLowerCase().indexOf(q)>=0});var l=document.getElementById('tb-list');l.innerHTML=arr.map(function(p){return'<div class="p"><span>'+esc(p)+'</span><button class="del" data-n="'+esc(p)+'">✕</button></div>';}).join('')||'<div style="color:var(--muted);text-align:center;padding:20px">Пока пусто</div>';document.getElementById('cnt2').textContent=parts.size;}
 document.getElementById('tb-list').onclick=function(e){if(e.target&&e.target.classList.contains('del'))removePart(e.target.getAttribute('data-n'));};
 function animatePlusOne(){var cnt=document.getElementById('cnt');if(!cnt)return;var rect=cnt.getBoundingClientRect();var el=document.createElement('div');el.className='plus-one-float';el.textContent='+1';el.style.left=(rect.left+rect.width/2-12)+'px';el.style.top=(rect.top-6)+'px';document.body.appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},1350);}
-function render(){document.getElementById('cnt').textContent=parts.size;localStorage.setItem('skandalist39_parts',JSON.stringify(Array.from(parts)));}
+function render(){document.getElementById('cnt').textContent=parts.size;localStorage.setItem('skandalist39_parts',JSON.stringify(Array.from(parts)));if(typeof renderChatOverlay==='function')renderChatOverlay();}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // LEADERBOARD RENDERER — ПОСЛЕДНИЕ ВЫПАДЕНИЯ
@@ -713,7 +716,7 @@ function renderChatOverlay(){
     var isWinner=currentWinner&&m.user.toLowerCase()===currentWinner.toLowerCase();
     var cls='chat-msg'+(isParticipant?' participant':'')+(isWinner?' highlight':'');
     return'<div class="'+cls+'">'+
-      '<span class="time">'+m.time+'</span>'+
+      '<span class="chat-status '+(isParticipant?'part':'nopart')+'">'+(isParticipant?'УЧАСТВУЕТ':'НЕ УЧАСТВУЕТ')+'</span> '+
       '<span class="nick">'+esc(m.user)+':</span> '+
       '<span class="text">'+esc(m.msg)+'</span>'+
       '</div>';
@@ -962,7 +965,7 @@ function spinNewRoulette(){
     var X=Xstart+(Xfinal-Xstart)*ease;
     wrap.style.transform='translateX('+X+'px)';
     var crossed=Math.floor((X-Xstart)/step);
-    if(crossed!==lastTick){lastTick=crossed;playCaseTick();}
+    if(crossed!==lastTick){lastTick=crossed;playRouletteTick();}
     if(p<1){requestAnimationFrame(frame);}
     else{
       newRouletteSpinning=false;
@@ -971,7 +974,6 @@ function spinNewRoulette(){
       if(cells[L])cells[L].classList.add('is-winner');
       document.getElementById('new-roulette-result').innerText='🏆 Победитель: '+winner;
       confirmBtn.style.display='block';
-      playCaseOpen();
     }
   }
   requestAnimationFrame(frame);
@@ -1426,6 +1428,34 @@ function closeWinnerScreen(){
   currentSession=null;
 }
 
+var rouletteTickCounter=0;
+function playRouletteTick(){
+  try{
+    window._actx=window._actx||new (window.AudioContext||window.webkitAudioContext)();
+    var ctx=window._actx;
+    if(ctx.state==='suspended')ctx.resume();
+    var t=ctx.currentTime;
+    var high= (rouletteTickCounter%2===0);
+    rouletteTickCounter++;
+    // clock tick: impulse through resonant bandpass + body
+    var buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.04),ctx.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,4);
+    var src=ctx.createBufferSource();src.buffer=buf;
+    var bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=high?2400:1800;bp.Q.value=8;
+    var gain=ctx.createGain();gain.gain.setValueAtTime(high?0.09:0.07,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+    src.connect(bp);bp.connect(gain);gain.connect(ctx.destination);
+    src.start(t);src.stop(t+0.04);
+    // body thump
+    var osc=ctx.createOscillator(),g2=ctx.createGain();
+    osc.connect(g2);g2.connect(ctx.destination);
+    osc.type='sine';
+    osc.frequency.setValueAtTime(high?180:150,t);
+    g2.gain.setValueAtTime(0.04,t);
+    g2.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+    osc.start(t);osc.stop(t+0.06);
+  }catch(e){}
+}
 function playTick(){
   try{
     window._actx=window._actx||new (window.AudioContext||window.webkitAudioContext)();
@@ -1741,9 +1771,13 @@ function connect(){
         var statusLabel=document.getElementById('win-status-label');
         var nick=document.getElementById('win-nick');
         timerLabel.classList.add('timer-responded');
-        statusLabel.innerText='Победитель ответил';
+        var respSec=currentSession?Math.floor((Date.now()-currentSession.startTime)/1000):0;
+        var madeIt = respSec<=17;
+        statusLabel.innerText='Победитель ответил — '+(madeIt?'УСПЕЛ':'НЕ УСПЕЛ');
+        statusLabel.style.color=madeIt?'#4ade80':'#f87171';
         statusLabel.classList.add('winner-responded');
         nick.classList.add('winner-responded');
+        if(currentSession){currentSession.responseTime=respSec;currentSession.madeIt=madeIt;}
       }
       var winnerScreen=document.getElementById('winner-screen');
       if(winnerScreen&&winnerScreen.classList.contains('open')){
