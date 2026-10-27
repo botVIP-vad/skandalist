@@ -894,10 +894,12 @@ function getNeverWonParticipants(){
   });
 }
 function instantRollNeverWon(){
-  hideWinnerMenu();
-  var arr=getNeverWonParticipants();
-  if(arr.length===0){alert('Все участники уже выигрывали или список пуст!');return;}
-  showWinner(arr[Math.floor(Math.random()*arr.length)]);
+  try{
+    hideWinnerMenu();
+    var arr=getNeverWonParticipants();
+    if(arr.length===0){alert('Все участники уже выигрывали или список пуст!');return;}
+    showWinner(arr[Math.floor(Math.random()*arr.length)]);
+  }catch(e){alert('Ошибка: '+e.message);}
 }
 
 // ===== NEW HORIZONTAL ROULETTE =====
